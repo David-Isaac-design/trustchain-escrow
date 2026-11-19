@@ -19,13 +19,15 @@
  * cycle within it (useFocusTrap), Escape closes it, and focus returns to
  * the element that opened it on close.
  *
- * TODO (contributor — easy, Issue #42):
- * - Add enter/exit animation (scale + fade)
+ * Animation: the panel scales and fades in on open and out on close. The
+ * entering state is exposed via `data-state="open"` on the panel. When
+ * `prefers-reduced-motion: reduce` matches, the transform is disabled and
+ * only opacity transitions (or none) are used.
  */
 
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Button from './Button';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 
@@ -34,6 +36,8 @@ const SIZE_CLASSES = {
   md: 'max-w-md',
   lg: 'max-w-2xl',
 };
+
+const EXIT_DURATION_MS = 150;
 
 export default function Modal({
   isOpen,
@@ -48,6 +52,25 @@ export default function Modal({
   confirmVariant = 'primary',
 }) {
   const trapRef = useFocusTrap(isOpen);
+
+  // Track whether the panel is entering (open) or exiting (closing).
+  const [isVisible, setIsVisible] = useState(isOpen);
+  const [isEntering, setIsEntering] = useState(false);
+
+  // Drive enter/exit transitions. On open, mount then flip to the entering
+  // state on the next frame so the transition runs. On close, keep the panel
+  // mounted for the exit duration before unmounting.
+  useEffect(() => {
+    if (isOpen) {
+      setIsVisible(true);
+      const raf = requestAnimationFrame(() => setIsEntering(true));
+      return () => cancelAnimationFrame(raf);
+    }
+
+    setIsEntering(false);
+    const timer = setTimeout(() => setIsVisible(false), EXIT_DURATION_MS);
+    return () => clearTimeout(timer);
+  }, [isOpen]);
 
   // Close on Escape key
   useEffect(() => {
@@ -67,7 +90,7 @@ export default function Modal({
     };
   }, [isOpen]);
 
-  if (!isOpen) return null;
+  if (!isVisible) return null;
 
   return (
     <div
@@ -77,14 +100,24 @@ export default function Modal({
       aria-labelledby={title ? 'modal-title' : undefined}
     >
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
+      <div
+        className={`absolute inset-0 bg-black/70 backdrop-blur-sm transition-opacity duration-150
+                    motion-reduce:transition-none ${isEntering ? 'opacity-100' : 'opacity-0'}`}
+        onClick={onClose}
+      />
 
       {/* Panel */}
       <div
         ref={trapRef}
         tabIndex={-1}
+        data-state={isEntering ? 'open' : 'closed'}
         className={`relative w-full ${SIZE_CLASSES[size]} bg-gray-900 border border-gray-800
-                    rounded-2xl shadow-2xl p-6 space-y-4 focus:outline-none`}
+                    rounded-2xl shadow-2xl p-6 space-y-4 focus:outline-none
+                    transition-[opacity,transform] duration-150 ease-out
+                    motion-reduce:transition-opacity motion-reduce:duration-150
+                    ${isEntering
+                      ? 'opacity-100 scale-100 motion-reduce:scale-100'
+                      : 'opacity-0 scale-95 motion-reduce:scale-100'}`}
       >
         {/* Header */}
         <div className="flex items-start justify-between">
