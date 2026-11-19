@@ -3,7 +3,7 @@
  *
  * Persistent top navigation bar. Includes:
  * - Logo / brand name
- * - Nav links (Dashboard, Explorer)
+ * - Nav links (Dashboard, Explorer, Leaderboard)
  * - NetworkIndicator pill (Testnet / Mainnet)
  * - WalletStatus indicator (connected/connecting/disconnected)
  *
@@ -66,7 +66,12 @@ export default function Header() {
             >
               {t('nav.explorer')}
             </Link>
-            {/* TODO (contributor): add Leaderboard link */}
+            <Link
+              href="/leaderboard"
+              className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white text-sm transition-colors"
+            >
+              {t('nav.leaderboard')}
+            </Link>
           </nav>
 
           {/* Right Side */}
@@ -124,6 +129,13 @@ export default function Header() {
               onClick={() => setIsMobileMenuOpen(false)}
             >
               {t('nav.explorer')}
+            </Link>
+            <Link
+              href="/leaderboard"
+              className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors px-2"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              {t('nav.leaderboard')}
             </Link>
           </nav>
         )}
