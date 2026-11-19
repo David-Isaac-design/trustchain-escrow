@@ -371,3 +371,6 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for local setup, the Soroban toolchain, h
 
 <!-- handsoff-issue-533 -->
 - #533: Emit `admin_changed` Event During `initialize` and Any Future Admin Transfer in `EscrowContract`
+
+<!-- handsoff-issue-574 -->
+- #574: Guard rent-expiry timestamp arithmetic against overflow
